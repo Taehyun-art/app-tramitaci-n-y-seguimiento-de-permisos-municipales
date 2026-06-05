@@ -1,0 +1,6 @@
+{
+  "name": "Permisos Municipales",
+  "description": "Gestión y seguimiento de tramitaciones y permisos municipales con roles diferenciados para ciudadanos y funcionarios y registro de auditoría.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
