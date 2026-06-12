@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -25,16 +26,60 @@ class PermisoViewModel(application: Application) : AndroidViewModel(application)
 
     // Citizen Tracking State
     val searchCodeQuery = MutableStateFlow("")
-    val searchResult = MutableStateFlow<Permiso?>(null)
-    val searchResultDocs = MutableStateFlow<List<DocumentoAdjunto>>(emptyList())
-    val searchResultLogs = MutableStateFlow<List<AuditLog>>(emptyList())
+    private val _searchResultCode = MutableStateFlow<String?>(null)
     val searchPerformed = MutableStateFlow(false)
     val searchError = MutableStateFlow<String?>(null)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val searchResult: StateFlow<Permiso?> = _searchResultCode
+        .flatMapLatest { code ->
+            if (code == null) flowOf(null)
+            else repository.getPermisoByCodigoFlow(code)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val searchResultDocs: StateFlow<List<DocumentoAdjunto>> = searchResult
+        .flatMapLatest { permit ->
+            if (permit == null) flowOf(emptyList())
+            else repository.getDocumentosForPermisoFlow(permit.codigoSeguimiento)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val searchResultLogs: StateFlow<List<AuditLog>> = searchResult
+        .flatMapLatest { permit ->
+            if (permit == null) flowOf(emptyList())
+            else repository.getLogsForPermisoFlow(permit.codigoSeguimiento)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // Official Detailed State
-    val selectedPermiso = MutableStateFlow<Permiso?>(null)
-    val selectedPermisoDocs = MutableStateFlow<List<DocumentoAdjunto>>(emptyList())
-    val selectedPermisoLogs = MutableStateFlow<List<AuditLog>>(emptyList())
+    private val _selectedPermisoCode = MutableStateFlow<String?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedPermiso: StateFlow<Permiso?> = _selectedPermisoCode
+        .flatMapLatest { code ->
+            if (code == null) flowOf(null)
+            else repository.getPermisoByCodigoFlow(code)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedPermisoDocs: StateFlow<List<DocumentoAdjunto>> = selectedPermiso
+        .flatMapLatest { permit ->
+            if (permit == null) flowOf(emptyList())
+            else repository.getDocumentosForPermisoFlow(permit.codigoSeguimiento)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedPermisoLogs: StateFlow<List<AuditLog>> = selectedPermiso
+        .flatMapLatest { permit ->
+            if (permit == null) flowOf(emptyList())
+            else repository.getLogsForPermisoFlow(permit.codigoSeguimiento)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Simulated Real-time Notifications List (Newest first)
     private val _notifications = MutableStateFlow<List<AppNotification>>(emptyList())
@@ -59,42 +104,10 @@ class PermisoViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             repository.seedDatabaseIfEmpty()
         }
+    }
 
-        // Keep details synchronized when database updates
-        viewModelScope.launch {
-            combine(allPermisos, selectedPermiso) { list, p ->
-                if (p != null) list.find { it.codigoSeguimiento == p.codigoSeguimiento } else null
-            }.collect { updatedPermiso ->
-                if (updatedPermiso != null) {
-                    selectedPermiso.value = updatedPermiso
-                    // Refresh documents and logs
-                    repository.getDocumentosForPermisoList(updatedPermiso.codigoSeguimiento).let {
-                        selectedPermisoDocs.value = it
-                    }
-                    repository.getLogsForPermisoFlow(updatedPermiso.codigoSeguimiento).first {
-                        selectedPermisoLogs.value = it
-                        true
-                    }
-                }
-            }
-        }
-
-        viewModelScope.launch {
-            combine(allPermisos, searchResult) { list, p ->
-                if (p != null) list.find { it.codigoSeguimiento == p.codigoSeguimiento } else null
-            }.collect { updatedSearchResult ->
-                if (updatedSearchResult != null) {
-                    searchResult.value = updatedSearchResult
-                    repository.getDocumentosForPermisoList(updatedSearchResult.codigoSeguimiento).let {
-                        searchResultDocs.value = it
-                    }
-                    repository.getLogsForPermisoFlow(updatedSearchResult.codigoSeguimiento).first {
-                        searchResultLogs.value = it
-                        true
-                    }
-                }
-            }
-        }
+    fun selectPermiso(permiso: Permiso?) {
+        _selectedPermisoCode.value = permiso?.codigoSeguimiento
     }
 
     fun switchRole(role: String) {
@@ -126,25 +139,16 @@ class PermisoViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             val permit = repository.getPermisoByCodigo(uppercaseCode)
             if (permit != null) {
-                searchResult.value = permit
-                // Load associated documents and logs
-                searchResultDocs.value = repository.getDocumentosForPermisoList(uppercaseCode)
-                repository.getLogsForPermisoFlow(uppercaseCode).collect { logs ->
-                    searchResultLogs.value = logs
-                }
+                _searchResultCode.value = uppercaseCode
             } else {
-                searchResult.value = null
-                searchResultDocs.value = emptyList()
-                searchResultLogs.value = emptyList()
+                _searchResultCode.value = null
                 searchError.value = "No se encontró ningún trámite con el código '$uppercaseCode'"
             }
         }
     }
 
     fun clearSearchResult() {
-        searchResult.value = null
-        searchResultDocs.value = emptyList()
-        searchResultLogs.value = emptyList()
+        _searchResultCode.value = null
         searchPerformed.value = false
         searchError.value = null
         searchCodeQuery.value = ""
@@ -206,12 +210,7 @@ class PermisoViewModel(application: Application) : AndroidViewModel(application)
             )
 
             // Auto-load it to search state to show citizen their congratulations card
-            searchResult.value = nuevoPermiso
-            searchResultDocs.value = repository.getDocumentosForPermisoList(generatedCode)
-            // collect once
-            repository.getLogsForPermisoFlow(generatedCode).collect { logs ->
-                searchResultLogs.value = logs
-            }
+            _searchResultCode.value = generatedCode
             searchPerformed.value = true
             searchError.value = null
         }
@@ -257,10 +256,6 @@ class PermisoViewModel(application: Application) : AndroidViewModel(application)
                     type = NotificationType.WARNING
                 )
 
-                // Refresh official details if current
-                if (selectedPermiso.value?.codigoSeguimiento == codigo) {
-                    selectedPermiso.value = updatedPermito
-                }
             }
         }
     }
