@@ -1108,7 +1108,7 @@ fun OfficerPanelScreen(
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .clickable { viewModel.selectedPermiso.value = null }
+                                .clickable { viewModel.selectPermiso(null) }
                                 .padding(vertical = 8.dp)
                         ) {
                             Icon(Icons.Default.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
@@ -1177,7 +1177,7 @@ fun OfficerPanelScreen(
                                 items(filteredMap, key = { it.id }) { item ->
                                     ActiveOfficialPermitRow(
                                         permiso = item,
-                                        onClick = { viewModel.selectedPermiso.value = item }
+                                        onClick = { viewModel.selectPermiso(item) }
                                     )
                                 }
                             }
@@ -1267,9 +1267,9 @@ fun OfficerPermitEvaluationPanel(
     documents: List<DocumentoAdjunto>,
     logs: List<AuditLog>
 ) {
-    var evaluationComment by remember { mutableStateOf("") }
+    var evaluationComment by remember(selected.id) { mutableStateOf("") }
     var showEvaluationDialog by remember { mutableStateOf(false) }
-    var stateToApply by remember { mutableStateOf(selected.estado) }
+    var stateToApply by remember(selected.id, selected.estado) { mutableStateOf(selected.estado) }
     var showAttachDialogOfficer by remember { mutableStateOf(false) }
 
     // Permit Metadata Header
