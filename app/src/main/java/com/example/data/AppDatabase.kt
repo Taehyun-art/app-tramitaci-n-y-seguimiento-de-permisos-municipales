@@ -7,12 +7,12 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [
-        Permiso::class,
-        DocumentoAdjunto::class,
-        AuditLog::class,
-        Funcionario::class
+        Paciente::class,
+        LecturaGlucosa::class,
+        LecturaPresion::class,
+        Medicamento::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -27,7 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "permisos_municipales_db"
+                    "salud_cronica_db"
                 )
                 .fallbackToDestructiveMigration()
                 .build()
