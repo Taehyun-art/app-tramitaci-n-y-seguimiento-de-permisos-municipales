@@ -6,49 +6,40 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface AppDao {
 
-    // --- Permiso Queries ---
-    @Query("SELECT * FROM permisos ORDER BY fechaCreacion DESC")
-    fun getAllPermisosFlow(): Flow<List<Permiso>>
-
-    @Query("SELECT * FROM permisos ORDER BY fechaCreacion DESC")
-    suspend fun getAllPermisosList(): List<Permiso>
-
-    @Query("SELECT * FROM permisos WHERE codigoSeguimiento = :codigo LIMIT 1")
-    suspend fun getPermisoByCodigo(codigo: String): Permiso?
-
-    @Query("SELECT * FROM permisos WHERE codigoSeguimiento = :codigo LIMIT 1")
-    fun getPermisoByCodigoFlow(codigo: String): Flow<Permiso?>
+    // --- Paciente ---
+    @Query("SELECT * FROM pacientes LIMIT 1")
+    fun getPaciente(): Flow<Paciente?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPermiso(permiso: Permiso)
+    suspend fun insertPaciente(paciente: Paciente)
 
-    @Update
-    suspend fun updatePermiso(permiso: Permiso)
-
-    // --- DocumentoAdjunto Queries ---
-    @Query("SELECT * FROM documentos_adjuntos WHERE codigoSeguimiento = :codigo ORDER BY fechaAdjunto DESC")
-    fun getDocumentosForPermisoFlow(codigo: String): Flow<List<DocumentoAdjunto>>
-
-    @Query("SELECT * FROM documentos_adjuntos WHERE codigoSeguimiento = :codigo ORDER BY fechaAdjunto DESC")
-    suspend fun getDocumentosForPermisoList(codigo: String): List<DocumentoAdjunto>
+    // --- Glucosa ---
+    @Query("SELECT * FROM lecturas_glucosa ORDER BY fecha DESC")
+    fun getAllGlucosa(): Flow<List<LecturaGlucosa>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDocumento(documento: DocumentoAdjunto)
+    suspend fun insertGlucosa(lectura: LecturaGlucosa)
 
-    // --- AuditLog Queries ---
-    @Query("SELECT * FROM audit_logs WHERE codigoSeguimiento = :codigo ORDER BY timestamp DESC")
-    fun getLogsForPermisoFlow(codigo: String): Flow<List<AuditLog>>
+    @Query("DELETE FROM lecturas_glucosa WHERE id = :id")
+    suspend fun deleteGlucosa(id: Int)
 
-    @Query("SELECT * FROM audit_logs ORDER BY timestamp DESC")
-    fun getAllLogsFlow(): Flow<List<AuditLog>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLog(log: AuditLog)
-
-    // --- Funcionario Queries ---
-    @Query("SELECT * FROM funcionarios ORDER BY nombre ASC")
-    fun getAllFuncionariosFlow(): Flow<List<Funcionario>>
+    // --- Presion ---
+    @Query("SELECT * FROM lecturas_presion ORDER BY fecha DESC")
+    fun getAllPresion(): Flow<List<LecturaPresion>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFuncionario(funcionario: Funcionario)
+    suspend fun insertPresion(lectura: LecturaPresion)
+
+    @Query("DELETE FROM lecturas_presion WHERE id = :id")
+    suspend fun deletePresion(id: Int)
+
+    // --- Medicamentos ---
+    @Query("SELECT * FROM medicamentos ORDER BY fechaInicio DESC")
+    fun getAllMedicamentos(): Flow<List<Medicamento>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMedicamento(medicamento: Medicamento)
+
+    @Query("DELETE FROM medicamentos WHERE id = :id")
+    suspend fun deleteMedicamento(id: Int)
 }

@@ -2,20 +2,20 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Light Theme Palette (Gobierno Digital)
-val GobPrimary = Color(0xFF005691)       // Deep Royal Blue
-val GobSecondary = Color(0xFF1A8270)     // Deep Teal
-val GobTertiary = Color(0xFFD97706)      // Dark gold / Amber for Warn/Pending
-val GobBackground = Color(0xFFF3F7FA)    // Safe, soft bluish-gray
-val GobSurface = Color(0xFFFFFFFF)       // Crisp white
-val GobSurfaceVariant = Color(0xFFE5EDF4) // Soft light card blue
+// Health Theme Palette
+val HealthPrimary = Color(0xFF2E7D32)    // Green 800
+val HealthSecondary = Color(0xFF0288D1)  // Light Blue 700
+val HealthTertiary = Color(0xFFC62828)   // Red 800
+val HealthBackground = Color(0xFFF1F8E9) // Light Green 50
+val HealthSurface = Color(0xFFFFFFFF)    // White
+val HealthSurfaceVariant = Color(0xFFE8F5E9) // Light Green 100
 
-val GobTextPrimary = Color(0xFF1E293B)   // Slate 800
-val GobTextSecondary = Color(0xFF64748B) // Slate 500
+val HealthTextPrimary = Color(0xFF1B5E20)   // Green 900
+val HealthTextSecondary = Color(0xFF455A64) // Blue Gray 700
 
-// Status Colors
-val StatusRecibido = Color(0xFF3B82F6)   // Blue
-val StatusEnRevision = Color(0xFF8B5CF6) // Purple
-val StatusObservado = Color(0xFFF59E0B)  // Amber
-val StatusAprobado = Color(0xFF10B981)   // Emerald Green
-val StatusRechazado = Color(0xFFEF4444)  // Red
+// Status Colors for Health
+val StatusNormal = Color(0xFF4CAF50)    // Green
+val StatusWarning = Color(0xFFFFC107)   // Amber
+val StatusDanger = Color(0xFFF44336)    // Red
+val StatusGlucose = Color(0xFFFF9800)   // Orange
+val StatusPressure = Color(0xFF2196F3)  // Blue
